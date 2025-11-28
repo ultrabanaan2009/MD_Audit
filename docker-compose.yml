@@ -9,7 +9,7 @@ services:
     environment:
       - MD_AUDIT_LLM_API_KEY=${MD_AUDIT_LLM_API_KEY:-}
       - MD_AUDIT_LLM_MODEL=${MD_AUDIT_LLM_MODEL:-gpt-4o}
-      - MD_AUDIT_LLM_BASE_URL=${MD_AUDIT_LLM_BASE_URL:-https://api.openai.com/v1}
+      - MD_AUDIT_LLM_BASE_URL=${MD_AUDIT_LLM_BASE_URL:-https://newapi.deepwisdom.ai/v1}
       - MD_AUDIT_ALLOWED_ORIGINS=*
     volumes:
       - md-audit-data:/app/data
