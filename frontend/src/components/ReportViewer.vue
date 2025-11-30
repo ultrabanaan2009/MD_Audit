@@ -1,4 +1,5 @@
 <template>
+  <!-- Fixed: use relevance_score instead of keyword_score -->
   <div v-if="report" class="space-y-6 animate-fade-in">
     <!-- 总分卡片 -->
     <div class="card-glass relative overflow-hidden">
@@ -70,10 +71,14 @@
           </h2>
 
           <div class="space-y-3">
-            <ScoreBar label="元数据" :score="report.metadata_score" :max="30" color="blue" />
-            <ScoreBar label="文档结构" :score="report.structure_score" :max="25" color="purple" />
-            <ScoreBar label="关键词" :score="report.keyword_score" :max="20" color="amber" />
-            <ScoreBar label="AI 分析" :score="report.ai_score" :max="25" color="emerald" />
+            <ScoreBar label="元数据" :score="report.metadata_score" :max="15" color="blue" />
+            <ScoreBar label="搜索意图" :score="report.intent_score || 0" :max="5" color="rose" />
+            <ScoreBar label="内容深度" :score="report.content_depth_score || 0" :max="20" color="cyan" />
+            <ScoreBar label="E-E-A-T" :score="report.eeat_score || 0" :max="15" color="violet" />
+            <ScoreBar label="内容结构" :score="report.structure_score" :max="15" color="purple" />
+            <ScoreBar label="AI搜索优化" :score="report.ai_search_score || 0" :max="10" color="amber" />
+            <ScoreBar label="关键词" :score="report.keyword_score || 0" :max="10" color="orange" />
+            <ScoreBar label="AI语义" :score="report.ai_score" :max="10" color="emerald" />
           </div>
         </div>
       </div>
@@ -148,6 +153,120 @@
             severity="success"
           />
         </div>
+      </div>
+    </div>
+
+    <!-- AI 智能分析 -->
+    <div v-if="report.ai_analysis" class="card-glass border border-emerald-200/50">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+        </div>
+        AI 智能分析
+        <span class="badge badge-success text-xs">GPT-4o</span>
+      </h3>
+
+      <!-- AI 综合评价 -->
+      <div v-if="report.ai_analysis.overall_feedback" class="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-100">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <div>
+            <h4 class="text-sm font-medium text-emerald-700 mb-1">AI 综合评价</h4>
+            <p class="text-gray-700">{{ report.ai_analysis.overall_feedback }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 详细评分 - 2024 SEO 4维度 -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="text-center p-3 bg-white/60 rounded-lg border border-gray-100">
+          <div class="text-2xl font-bold" :class="getAIScoreColor(report.ai_analysis.eeat_score)">
+            {{ Math.round(report.ai_analysis.eeat_score || 0) }}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">E-E-A-T</div>
+        </div>
+        <div class="text-center p-3 bg-white/60 rounded-lg border border-gray-100">
+          <div class="text-2xl font-bold" :class="getAIScoreColor(report.ai_analysis.depth_score)">
+            {{ Math.round(report.ai_analysis.depth_score || 0) }}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">内容深度</div>
+        </div>
+        <div class="text-center p-3 bg-white/60 rounded-lg border border-gray-100">
+          <div class="text-2xl font-bold" :class="getAIScoreColor(report.ai_analysis.readability_score)">
+            {{ Math.round(report.ai_analysis.readability_score || 0) }}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">可读性</div>
+        </div>
+        <div class="text-center p-3 bg-white/60 rounded-lg border border-gray-100">
+          <div class="text-2xl font-bold" :class="getAIScoreColor(report.ai_analysis.topical_relevance_score)">
+            {{ Math.round(report.ai_analysis.topical_relevance_score || 0) }}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">主题相关性</div>
+        </div>
+      </div>
+
+      <!-- E-E-A-T 详细评价 -->
+      <div v-if="report.ai_analysis.eeat_details" class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+        <h4 class="text-sm font-medium text-blue-700 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          E-E-A-T 详细评价（Google 2025 SEO核心标准）
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div class="flex items-start gap-2">
+            <span class="font-medium text-blue-600 whitespace-nowrap">Experience:</span>
+            <span class="text-gray-700">{{ report.ai_analysis.eeat_details.experience || '未评估' }}</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="font-medium text-blue-600 whitespace-nowrap">Expertise:</span>
+            <span class="text-gray-700">{{ report.ai_analysis.eeat_details.expertise || '未评估' }}</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="font-medium text-blue-600 whitespace-nowrap">Authoritativeness:</span>
+            <span class="text-gray-700">{{ report.ai_analysis.eeat_details.authoritativeness || '未评估' }}</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="font-medium text-blue-600 whitespace-nowrap">Trustworthiness:</span>
+            <span class="text-gray-700">{{ report.ai_analysis.eeat_details.trustworthiness || '未评估' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 改进建议 -->
+      <div v-if="report.ai_analysis.improvement_suggestions?.length > 0">
+        <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI 改进建议
+        </h4>
+        <ul class="space-y-2">
+          <li
+            v-for="(suggestion, index) in report.ai_analysis.improvement_suggestions"
+            :key="index"
+            class="flex items-start gap-2 p-3 bg-amber-50/50 rounded-lg border border-amber-100"
+          >
+            <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+              {{ index + 1 }}
+            </span>
+            <span class="text-gray-700 text-sm">{{ suggestion }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 无 AI 分析时的提示 -->
+    <div v-else-if="report.ai_score === 0" class="card border border-gray-200 bg-gray-50/50">
+      <div class="flex items-center gap-3 text-gray-500">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm">AI 分析未启用或暂时不可用，当前显示基于规则的诊断结果</span>
       </div>
     </div>
 
@@ -294,18 +413,26 @@ const scoreBadgeClass = computed(() => {
 // 分数标签
 const scoreLabel = computed(() => getScoreGrade(props.report.total_score))
 
-// 分类诊断项
+// 分类诊断项（后端使用 critical/warning/info/success）
 const errorItems = computed(() =>
-  props.report.diagnostics?.filter(d => d.severity === 'error') || []
+  props.report.diagnostics?.filter(d => d.severity === 'critical') || []
 )
 
 const warningItems = computed(() =>
-  props.report.diagnostics?.filter(d => d.severity === 'warning') || []
+  props.report.diagnostics?.filter(d => d.severity === 'warning' || d.severity === 'info') || []
 )
 
 const successItems = computed(() =>
   props.report.diagnostics?.filter(d => d.severity === 'success') || []
 )
+
+// AI 分数颜色
+const getAIScoreColor = (score) => {
+  if (score >= 80) return 'text-emerald-600'
+  if (score >= 60) return 'text-blue-600'
+  if (score >= 40) return 'text-amber-600'
+  return 'text-red-600'
+}
 </script>
 
 <style scoped>

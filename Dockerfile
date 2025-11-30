@@ -4,18 +4,18 @@
 # ===== 阶段1：构建前端 =====
 FROM node:20-alpine AS frontend-builder
 
-WORKDIR /app/frontend
+WORKDIR /app
 
-# 复制前端依赖文件
-COPY frontend/package*.json ./
+# 复制整个项目结构（需要web目录作为输出目标）
+COPY frontend/ ./frontend/
+COPY web/ ./web/
+
+WORKDIR /app/frontend
 
 # 安装依赖
 RUN npm install --legacy-peer-deps
 
-# 复制前端源码
-COPY frontend/ ./
-
-# 构建前端
+# 构建前端（输出到 ../web/static）
 RUN npm run build
 
 # ===== 阶段2：Python运行环境 =====
@@ -41,7 +41,7 @@ COPY config/ ./config/
 COPY setup.py ./
 
 # 从前端构建阶段复制静态文件
-COPY --from=frontend-builder /app/frontend/dist ./web/static/
+COPY --from=frontend-builder /app/web/static ./web/static/
 
 # 安装项目
 RUN pip install -e .

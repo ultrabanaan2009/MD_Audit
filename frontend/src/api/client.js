@@ -27,8 +27,22 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     // 统一错误处理
-    const message = error.response?.data?.detail || error.message || '请求失败'
-    console.error('API Error:', message)
+    let message = '请求失败'
+    const detail = error.response?.data?.detail
+
+    if (typeof detail === 'string') {
+      message = detail
+    } else if (detail?.message) {
+      // 后端返回 ErrorResponse 对象
+      message = detail.message
+      if (detail.details) {
+        message += `: ${detail.details}`
+      }
+    } else if (error.message) {
+      message = error.message
+    }
+
+    console.error('API Error:', message, error.response?.data)
     return Promise.reject(new Error(message))
   }
 )
@@ -51,6 +65,26 @@ export async function analyzeFile(file, keywords = []) {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+  })
+}
+
+/**
+ * 批量上传并分析多个文件
+ * @param {File[]} files - 要上传的文件数组
+ * @returns {Promise<Object>} 批量分析结果
+ */
+export async function analyzeBatch(files) {
+  const formData = new FormData()
+
+  for (const file of files) {
+    formData.append('files', file)
+  }
+
+  return apiClient.post('/analyze/batch', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 120000, // 批量分析需要更长超时（2分钟）
   })
 }
 

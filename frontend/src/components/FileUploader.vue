@@ -5,6 +5,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       上传 Markdown 文件
+      <span class="text-sm font-normal text-gray-500 ml-2">(支持批量)</span>
     </h2>
 
     <!-- 拖拽上传区 -->
@@ -22,6 +23,7 @@
         ref="fileInput"
         type="file"
         accept=".md,.txt,.markdown"
+        multiple
         @change="handleFileSelect"
         class="hidden"
       />
@@ -118,36 +120,61 @@
       </div>
     </div>
 
-    <!-- 已选择文件 -->
+    <!-- 已选择文件列表 -->
     <transition name="slide-up">
-      <div v-if="selectedFile && !uploading" class="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-medium text-gray-800 truncate">{{ selectedFile.name }}</p>
-            <p class="text-sm text-gray-500">{{ formatFileSize(selectedFile.size) }}</p>
+      <div v-if="selectedFiles.length > 0 && !uploading" class="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <!-- 批量模式头部 -->
+        <div v-if="isBatchMode" class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+              批量模式
+            </span>
+            <span class="text-sm text-gray-600">已选择 {{ selectedFiles.length }} 个文件</span>
           </div>
           <button
-            @click.stop="selectedFile = null"
-            class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            @click.stop="clearFiles"
+            class="text-sm text-gray-500 hover:text-red-500 transition-colors"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            清空全部
           </button>
         </div>
+
+        <!-- 文件列表 -->
+        <div :class="['space-y-2', { 'max-h-48 overflow-y-auto': selectedFiles.length > 3 }]">
+          <div
+            v-for="(file, index) in selectedFiles"
+            :key="index"
+            class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-gray-800 truncate text-sm">{{ file.name }}</p>
+              <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>
+            </div>
+            <button
+              @click.stop="removeFile(index)"
+              class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 分析按钮 -->
         <button
-          @click="uploadFile"
+          @click="uploadFiles"
           class="btn-primary w-full mt-4"
         >
           <svg class="w-5 h-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          开始诊断分析
+          {{ isBatchMode ? `批量诊断 (${selectedFiles.length} 个文件)` : '开始诊断分析' }}
         </button>
       </div>
     </transition>
@@ -176,17 +203,21 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
-import { analyzeFile } from '../api/client'
+import { ref, computed, onUnmounted } from 'vue'
+import { analyzeFile, analyzeBatch } from '../api/client'
 import { validateFile } from '../utils/validation'
 import { formatFileSize } from '../utils/format'
 
-const emit = defineEmits(['upload-success', 'upload-error'])
+const emit = defineEmits(['upload-success', 'upload-error', 'batch-upload-success'])
 
-const selectedFile = ref(null)
+// 支持多文件选择
+const selectedFiles = ref([])
 const uploading = ref(false)
 const isDragging = ref(false)
 const error = ref('')
+
+// 计算属性：是否为批量模式
+const isBatchMode = computed(() => selectedFiles.value.length > 1)
 
 // 进度动画状态
 const analysisStep = ref(0)
@@ -239,56 +270,99 @@ onUnmounted(() => {
   if (stepInterval) clearTimeout(stepInterval)
 })
 
-// 处理拖拽放置
+// 处理拖拽放置（支持多文件）
 const handleDrop = (e) => {
   isDragging.value = false
-  const files = e.dataTransfer.files
+  const files = Array.from(e.dataTransfer.files)
   if (files.length > 0) {
-    validateAndSetFile(files[0])
+    validateAndSetFiles(files)
   }
 }
 
-// 处理文件选择
+// 处理文件选择（支持多文件）
 const handleFileSelect = (e) => {
-  const files = e.target.files
+  const files = Array.from(e.target.files)
   if (files.length > 0) {
-    validateAndSetFile(files[0])
+    validateAndSetFiles(files)
   }
+  // 重置input，允许重复选择同一文件
+  e.target.value = ''
 }
 
-// 校验并设置文件
-const validateAndSetFile = (file) => {
+// 校验并设置多个文件
+const validateAndSetFiles = (files) => {
   error.value = ''
 
-  // 使用统一的验证工具
-  const validation = validateFile(file)
-
-  if (!validation.valid) {
-    error.value = validation.errors.join('；')
+  // 限制最多50个文件
+  if (files.length > 50) {
+    error.value = '每次最多上传50个文件'
     return
   }
 
-  if (file.size === 0) {
-    error.value = '文件为空（0字节）'
+  const validFiles = []
+  const errors = []
+
+  for (const file of files) {
+    const validation = validateFile(file)
+
+    if (!validation.valid) {
+      errors.push(`${file.name}: ${validation.errors.join('；')}`)
+      continue
+    }
+
+    if (file.size === 0) {
+      errors.push(`${file.name}: 文件为空（0字节）`)
+      continue
+    }
+
+    validFiles.push(file)
+  }
+
+  if (errors.length > 0 && validFiles.length === 0) {
+    error.value = errors.join('\n')
     return
   }
 
-  selectedFile.value = file
+  if (errors.length > 0) {
+    // 部分文件有效，显示警告但继续
+    error.value = `部分文件无效已跳过: ${errors.length}个`
+  }
+
+  selectedFiles.value = validFiles
 }
 
-// 上传文件
-const uploadFile = async () => {
-  if (!selectedFile.value) return
+// 移除单个文件
+const removeFile = (index) => {
+  selectedFiles.value.splice(index, 1)
+}
+
+// 清空所有文件
+const clearFiles = () => {
+  selectedFiles.value = []
+  error.value = ''
+}
+
+// 上传文件（自动区分单文件/批量）
+const uploadFiles = async () => {
+  if (selectedFiles.value.length === 0) return
 
   uploading.value = true
   error.value = ''
   startProgressAnimation()
 
   try {
-    const data = await analyzeFile(selectedFile.value)
-    stopProgressAnimation(true)
-    emit('upload-success', data)
-    selectedFile.value = null
+    if (isBatchMode.value) {
+      // 批量上传
+      const data = await analyzeBatch(selectedFiles.value)
+      stopProgressAnimation(true)
+      emit('batch-upload-success', data)
+    } else {
+      // 单文件上传
+      const data = await analyzeFile(selectedFiles.value[0])
+      stopProgressAnimation(true)
+      emit('upload-success', data)
+    }
+    selectedFiles.value = []
   } catch (err) {
     stopProgressAnimation(false)
     error.value = err.message

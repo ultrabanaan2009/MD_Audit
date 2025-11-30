@@ -72,6 +72,9 @@ class MarkdownParser:
         fm = post.metadata
         raw_content = post.content
 
+        # 规范化标题（兼容部分导出场景，如"1. ### Title"被当作列表+H3）
+        raw_content = self._normalize_headings(raw_content)
+
         # 转换为HTML
         html_content = self.md_parser.convert(raw_content)
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -84,10 +87,15 @@ class MarkdownParser:
 
         # 提取描述
         description = fm.get('description', '') or fm.get('excerpt', '')
+        if not description:
+            # 如果没有描述，使用正文前160字符生成摘要，避免元数据得分为0
+            text_for_desc = soup.get_text().strip()
+            description = text_for_desc[:160]
 
-        # 提取H1和H2标签
+        # 提取H1/H2/H3标签
         h1_tags = [h1.get_text(strip=True) for h1 in soup.find_all('h1')]
         h2_tags = [h2.get_text(strip=True) for h2 in soup.find_all('h2')]
+        h3_tags = [h3.get_text(strip=True) for h3 in soup.find_all('h3')]
 
         # 提取图片
         images = []
@@ -105,9 +113,9 @@ class MarkdownParser:
                 'text': a.get_text(strip=True)
             })
 
-        # 计算字数（移除HTML标签后）
+        # 计算字数（支持中英文混合）
         text_content = soup.get_text()
-        word_count = len(text_content.split())
+        word_count = self._count_words(text_content)
 
         # 重置解析器状态以避免状态污染
         self.md_parser.reset()
@@ -120,6 +128,7 @@ class MarkdownParser:
             description=description,
             h1_tags=h1_tags,
             h2_tags=h2_tags,
+            h3_tags=h3_tags,
             images=images,
             links=links,
             word_count=word_count
@@ -196,6 +205,15 @@ class MarkdownParser:
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
 
+    # 兼容性标题规范化
+    def _normalize_headings(self, text: str) -> str:
+        """
+        将常见的“数字列表+H3”导出格式（如"1. ### Title"）转换为标准H2，避免结构被误判。
+        仅在行首匹配数字+点+空格+### 时替换为"##"，减少对正常列表的影响。
+        """
+        pattern = re.compile(r'^(\s*\d+\.\s+)###\s+', re.MULTILINE)
+        return re.sub(pattern, r'## ', text)
+
     def _is_quality_keyword(self, keyword: str) -> bool:
         """
         判断关键词质量（参考analyzer.py:16-94）
@@ -227,3 +245,16 @@ class MarkdownParser:
                 return False
 
         return True
+
+    def _count_words(self, text: str) -> int:
+        """
+        计算字数（支持中英文混合文本）
+
+        中文：每个汉字计为1词
+        英文：按空格分隔的单词计数
+        """
+        # 中文字符数
+        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', text))
+        # 英文单词数（连续字母序列）
+        english_words = len(re.findall(r'\b[a-zA-Z]+\b', text))
+        return chinese_chars + english_words

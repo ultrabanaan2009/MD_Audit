@@ -85,6 +85,7 @@ async def root():
 
 # 定时清理临时文件
 from web.services.file_service import FileService
+from web.services.analyzer_service import clear_analyzer_cache, get_analyzer
 import asyncio
 
 
@@ -103,10 +104,20 @@ async def startup_event():
     """应用启动时执行"""
     logger.info("MD Audit Web服务启动中...")
 
+    # 清除缓存，确保使用最新配置
+    clear_analyzer_cache()
+
+    # 预热analyzer（提前加载，显示AI状态）
+    analyzer = get_analyzer()
+    ai_status = "启用" if analyzer.ai_engine else "禁用"
+    logger.info(f"AI分析引擎: {ai_status}")
+    if analyzer.ai_engine:
+        logger.info(f"AI模型: {analyzer.config.llm_model}")
+
     # 启动后台清理任务
     asyncio.create_task(cleanup_task())
 
-    logger.info("MD Audit Web服务已启动 ✅")
+    logger.info("MD Audit Web服务已启动")
 
 
 @app.on_event("shutdown")

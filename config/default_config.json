@@ -1,31 +1,154 @@
 {
   "title_rules": {
-    "min_length": 30,
+    "min_length": 50,
     "max_length": 60,
-    "weight": 15.0
+    "optimal_pixels": 600,
+    "weight": 15.0,
+    "comment": "2025 Standard: 50-60 chars or 600px max (Ahrefs/SEMrush)"
   },
   "description_rules": {
-    "min_length": 120,
+    "min_length": 150,
     "max_length": 160,
-    "weight": 15.0
+    "mobile_max_length": 120,
+    "optimal_pixels": 920,
+    "weight": 10.0,
+    "comment": "2025 Standard: 150-160 chars desktop, 120 mobile (920px max)"
   },
   "keyword_rules": {
-    "min_density": 0.01,
-    "max_density": 0.025,
+    "min_density": 0.005,
+    "max_density": 0.02,
     "max_auto_keywords": 5,
-    "weight": 20.0
+    "weight": 15.0,
+    "comment": "2025: Keyword stuffing penalized, natural usage preferred"
   },
   "content_rules": {
-    "min_length": 300,
+    "min_length": 1500,
+    "optimal_length": 2000,
+    "max_length": 3500,
     "min_h1_count": 1,
     "max_h1_count": 1,
+    "min_h2_count": 3,
     "min_image_alt_ratio": 0.8,
-    "structure_weight": 25.0
+    "alt_text_max_length": 125,
+    "structure_weight": 20.0,
+    "comment": "2025 Standard: 1500-2500 words optimal (Backlinko avg 1447 for top 10)"
+  },
+  "content_depth_rules": {
+    "optimal_min_words": 1500,
+    "optimal_max_words": 2500,
+    "acceptable_max_words": 4000,
+    "section_optimal_min": 4,
+    "section_optimal_max": 8,
+    "paragraph_min_words": 100,
+    "paragraph_max_words": 200,
+    "evidence_min_citations": 2,
+    "evidence_min_data_points": 2
+  },
+  "link_rules": {
+    "min_internal_links": 3,
+    "optimal_internal_links_per_1000_words": 3,
+    "max_internal_links_per_1000_words": 5,
+    "min_external_links": 1,
+    "max_total_links": 150,
+    "weight": 7.0,
+    "poor_anchor_texts": [
+      "点击这里",
+      "click here",
+      "这里",
+      "here",
+      "link",
+      "链接",
+      "read more"
+    ],
+    "comment": "2025 Standard: 3-5 internal links per 1000 words (Rush Analytics)"
+  },
+  "eeat_rules": {
+    "require_author_info": true,
+    "require_publish_date": true,
+    "min_citations": 2,
+    "min_external_references": 1,
+    "weight": 10.0,
+    "high_authority_domains": [
+      "gov",
+      "edu",
+      "wikipedia.org",
+      "docs.python.org",
+      "developer.mozilla.org",
+      "w3.org",
+      "schema.org",
+      "developers.google.com",
+      "microsoft.com/docs"
+    ],
+    "comment": "2025 E-E-A-T: Experience, Expertise, Authoritativeness, Trust"
+  },
+  "ai_search_rules": {
+    "check_faq_section": true,
+    "check_structured_answers": true,
+    "check_list_content": true,
+    "weight": 5.0,
+    "first_paragraph_optimal_max_words": 120,
+    "first_paragraph_min_words": 50,
+    "faq_optimal_min": 3,
+    "faq_optimal_max": 5,
+    "faq_answer_min_words": 40,
+    "faq_answer_max_words": 60,
+    "summary_keywords": [
+      "tldr",
+      "tl;dr",
+      "摘要",
+      "summary",
+      "key takeaways",
+      "要点",
+      "结论",
+      "conclusion"
+    ],
+    "comment": "2025: AI search optimization for ChatGPT, Google AI Overview"
+  },
+  "score_weights": {
+    "metadata": 15.0,
+    "content_depth": 20.0,
+    "eeat": 15.0,
+    "structure": 15.0,
+    "ai_search": 10.0,
+    "keywords": 10.0,
+    "ai_semantic": 10.0,
+    "intent": 5.0,
+    "schema": 0.0
   },
   "llm_api_key": "",
   "llm_base_url": "https://newapi.deepwisdom.ai/v1",
   "llm_model": "gpt-4o",
   "llm_timeout": 30,
   "llm_max_retries": 3,
-  "enable_ai_analysis": true
+  "enable_ai_analysis": true,
+  "intent_rules": {
+    "intent_keywords": [
+      "指南",
+      "教程",
+      "如何",
+      "怎么",
+      "步骤",
+      "Top 10",
+      "最佳",
+      "推荐",
+      "清单",
+      "guide",
+      "how to",
+      "best",
+      "top",
+      "checklist"
+    ],
+    "intro_min_words": 30,
+    "intro_max_words": 160,
+    "conclusion_headings": [
+      "结论",
+      "总结",
+      "小结",
+      "结语",
+      "Conclusion",
+      "Final Thoughts",
+      "Wrap Up"
+    ],
+    "weight": 5.0
+  }
 }

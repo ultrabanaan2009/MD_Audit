@@ -214,7 +214,7 @@ def _generate_summary(reports: List[SEOReport], base_dir: str) -> str:
         lines.append(
             f"| {score_emoji} `{rel_path}` | **{report.total_score:.1f}** | "
             f"{report.metadata_score:.1f} | {report.structure_score:.1f} | "
-            f"{report.keyword_score:.1f} | {report.ai_score:.1f} |"
+            f"{report.relevance_score:.1f} | {report.ai_score:.1f} |"
         )
 
     return "\n".join(lines)

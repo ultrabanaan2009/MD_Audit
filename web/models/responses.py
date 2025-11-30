@@ -38,6 +38,26 @@ class HistoryListResponse(BaseModel):
     page_size: int = Field(..., ge=1, le=100, description="每页数量")
 
 
+class BatchAnalyzeItem(BaseModel):
+    """批量分析单项结果"""
+    file_name: str = Field(..., description="文件名")
+    total_score: float = Field(..., ge=0, le=100, description="总分")
+    rules_score: float = Field(..., ge=0, le=100, description="规则得分")
+    ai_score: float = Field(default=0, ge=0, le=100, description="AI得分")
+    history_id: str = Field(..., description="历史记录ID")
+    success: bool = Field(default=True, description="分析是否成功")
+    error: Optional[str] = Field(None, description="错误信息")
+
+
+class BatchAnalyzeResponse(BaseModel):
+    """批量分析响应模型"""
+    total_files: int = Field(..., description="上传文件总数")
+    success_count: int = Field(..., description="成功分析数量")
+    failed_count: int = Field(..., description="失败数量")
+    results: list[BatchAnalyzeItem] = Field(default_factory=list, description="分析结果列表")
+    average_score: float = Field(..., ge=0, le=100, description="平均分数")
+
+
 class HealthResponse(BaseModel):
     """健康检查响应"""
     status: str = Field(..., description="服务状态（healthy/unhealthy）")

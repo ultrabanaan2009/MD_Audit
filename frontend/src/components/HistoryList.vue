@@ -72,15 +72,15 @@
             </p>
           </div>
 
-          <!-- 问题统计 -->
+          <!-- 问题统计（后端使用 critical/warning/info/success） -->
           <div class="flex items-center gap-2 shrink-0">
-            <span v-if="item.severity_counts.error > 0" class="badge badge-error">
-              {{ item.severity_counts.error }} 严重
+            <span v-if="getCriticalCount(item) > 0" class="badge badge-error">
+              {{ getCriticalCount(item) }} 严重
             </span>
-            <span v-if="item.severity_counts.warning > 0" class="badge badge-warning">
-              {{ item.severity_counts.warning }} 建议
+            <span v-if="getWarningCount(item) > 0" class="badge badge-warning">
+              {{ getWarningCount(item) }} 建议
             </span>
-            <span v-if="!item.severity_counts.error && !item.severity_counts.warning" class="badge badge-success">
+            <span v-if="getCriticalCount(item) === 0 && getWarningCount(item) === 0" class="badge badge-success">
               全部通过
             </span>
           </div>
@@ -190,6 +190,18 @@ const loadHistory = async (page = currentPage.value) => {
 
 // 格式化时间
 const formatTime = (timestamp) => formatRelativeTime(timestamp)
+
+// 获取严重问题数（兼容旧格式 error 和新格式 critical）
+const getCriticalCount = (item) => {
+  const counts = item.severity_counts || {}
+  return (counts.critical || 0) + (counts.error || 0)
+}
+
+// 获取建议优化数（warning + info）
+const getWarningCount = (item) => {
+  const counts = item.severity_counts || {}
+  return (counts.warning || 0) + (counts.info || 0)
+}
 
 // 评分背景样式
 const getScoreBgClass = (score) => {

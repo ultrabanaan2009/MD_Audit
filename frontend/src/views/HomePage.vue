@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Hero Section -->
-    <div v-if="!currentReport" class="text-center py-8">
+    <div v-if="!currentReport && !batchResults" class="text-center py-8">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-4">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -17,15 +17,40 @@
     </div>
 
     <!-- 文件上传器 -->
-    <FileUploader @upload-success="handleUploadSuccess" />
+    <FileUploader
+      @upload-success="handleUploadSuccess"
+      @batch-upload-success="handleBatchUploadSuccess"
+    />
 
-    <!-- 诊断报告 -->
+    <!-- 诊断报告（单文件） -->
     <transition name="fade-slide">
       <div v-if="currentReport">
         <ReportViewer :report="currentReport.report" />
 
         <div class="mt-8 flex justify-center gap-4">
-          <button @click="currentReport = null" class="btn-secondary">
+          <button @click="resetAll" class="btn-secondary">
+            <svg class="w-5 h-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            再次分析
+          </button>
+          <router-link to="/history" class="btn-primary">
+            <svg class="w-5 h-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            查看历史记录
+          </router-link>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 批量分析结果 -->
+    <transition name="fade-slide">
+      <div v-if="batchResults">
+        <BatchResultsViewer :results="batchResults" />
+
+        <div class="mt-8 flex justify-center gap-4">
+          <button @click="resetAll" class="btn-secondary">
             <svg class="w-5 h-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -42,7 +67,7 @@
     </transition>
 
     <!-- 功能介绍 -->
-    <div v-if="!currentReport" class="grid md:grid-cols-3 gap-6 mt-12">
+    <div v-if="!currentReport && !batchResults" class="grid md:grid-cols-3 gap-6 mt-12">
       <div class="card hover-lift text-center">
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center mx-auto mb-4">
           <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,7 +106,7 @@
     </div>
 
     <!-- 使用说明 -->
-    <div v-if="!currentReport" class="card bg-gradient-to-r from-blue-50 to-purple-50 border-blue-100">
+    <div v-if="!currentReport && !batchResults" class="card bg-gradient-to-r from-blue-50 to-purple-50 border-blue-100">
       <div class="flex items-start gap-4">
         <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
           <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,7 +122,7 @@
             </li>
             <li class="flex items-center gap-2">
               <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-              文件大小限制 10MB
+              单文件最大 10MB，批量最多 50 个文件
             </li>
             <li class="flex items-center gap-2">
               <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
@@ -118,11 +143,24 @@
 import { ref } from 'vue'
 import FileUploader from '../components/FileUploader.vue'
 import ReportViewer from '../components/ReportViewer.vue'
+import BatchResultsViewer from '../components/BatchResultsViewer.vue'
 
 const currentReport = ref(null)
+const batchResults = ref(null)
 
 const handleUploadSuccess = (data) => {
+  batchResults.value = null
   currentReport.value = data
+}
+
+const handleBatchUploadSuccess = (data) => {
+  currentReport.value = null
+  batchResults.value = data
+}
+
+const resetAll = () => {
+  currentReport.value = null
+  batchResults.value = null
 }
 </script>
 

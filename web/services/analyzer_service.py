@@ -7,8 +7,10 @@ from md_audit.config import MarkdownSEOConfig
 
 logger = logging.getLogger(__name__)
 
+# 全局analyzer实例（懒加载）
+_analyzer_instance = None
 
-@lru_cache(maxsize=1)
+
 def get_analyzer():
     """
     获取单例analyzer实例（复用，避免重复初始化）
@@ -16,8 +18,19 @@ def get_analyzer():
     Returns:
         MarkdownSEOAnalyzer实例
     """
-    config = MarkdownSEOConfig()
-    return MarkdownSEOAnalyzer(config)
+    global _analyzer_instance
+    if _analyzer_instance is None:
+        config = MarkdownSEOConfig()
+        _analyzer_instance = MarkdownSEOAnalyzer(config)
+        logger.info(f"Analyzer初始化完成 - AI引擎: {'启用' if _analyzer_instance.ai_engine else '禁用'}")
+    return _analyzer_instance
+
+
+def clear_analyzer_cache():
+    """清除analyzer缓存（用于重新加载配置）"""
+    global _analyzer_instance
+    _analyzer_instance = None
+    logger.info("Analyzer缓存已清除")
 
 
 class AnalyzerService:

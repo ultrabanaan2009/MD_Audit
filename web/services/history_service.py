@@ -34,12 +34,14 @@ class HistoryService:
         # 加载现有历史
         history = self._load_history()
 
-        # 计算严重程度统计
-        severity_counts = {"error": 0, "warning": 0, "success": 0}
+        # 计算严重程度统计（后端使用 critical/warning/info/success）
+        severity_counts = {"critical": 0, "warning": 0, "info": 0, "success": 0}
         for diag in report.get("diagnostics", []):
             severity = diag.get("severity", "success")
             if severity in severity_counts:
                 severity_counts[severity] += 1
+            elif severity == "error":  # 兼容旧数据
+                severity_counts["critical"] += 1
 
         # 添加新记录
         history[record_id] = {
@@ -68,18 +70,24 @@ class HistoryService:
         Args:
             page: 页码（从1开始）
             page_size: 每页数量
-            severity_filter: 严重程度筛选（all/error/warning）
+            severity_filter: 严重程度筛选（all/critical/warning/info）
 
         Returns:
             包含items、total、page、page_size的字典
         """
         history = self._load_history()
 
-        # 筛选
+        # 筛选（兼容旧的 error 筛选值）
         items = []
+        filter_key = "critical" if severity_filter == "error" else severity_filter
         for record in history.values():
-            if severity_filter != "all":
-                if record["severity_counts"].get(severity_filter, 0) == 0:
+            if filter_key != "all":
+                # 兼容旧格式（error → critical）
+                counts = record.get("severity_counts", {})
+                count = counts.get(filter_key, 0)
+                if filter_key == "critical":
+                    count += counts.get("error", 0)  # 兼容旧数据
+                if count == 0:
                     continue
             items.append(record)
 

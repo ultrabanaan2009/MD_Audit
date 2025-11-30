@@ -13,7 +13,7 @@ class FileService:
     MALICIOUS_PATTERNS = [
         r"<script[^>]*>",  # JavaScript脚本
         r"javascript:",  # JavaScript协议
-        r"on\w+\s*=",  # 事件处理器
+        r"on(click|error|load|mouseover|submit|focus|blur)\s*=",  # 危险事件处理器（排除style=等）
     ]
 
     def __init__(self, temp_dir: Path = None):

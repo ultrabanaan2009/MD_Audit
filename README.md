@@ -14,12 +14,11 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#web-interface">Web Interface</a> •
-  <a href="#cli-usage">CLI Usage</a> •
-  <a href="#api-reference">API</a> •
-  <a href="#configuration">Configuration</a> •
+  <a href="#features">Features</a> |
+  <a href="#quick-start">Quick Start</a> |
+  <a href="#docker">Docker</a> |
+  <a href="#cli-usage">CLI</a> |
+  <a href="#api-reference">API</a> |
   <a href="./README_CN.md">中文文档</a>
 </p>
 
@@ -27,158 +26,133 @@
 
 ## Overview
 
-**MD Audit** is a Python-based SEO diagnostic agent specifically designed for Markdown content. It combines a rule-based engine (75% weight) with AI semantic analysis (25% weight) to automatically evaluate SEO quality and provide actionable optimization suggestions.
+**MD Audit** is a Python-based SEO diagnostic agent for Markdown content. It combines a rule-based engine (75% weight) with AI semantic analysis (25% weight) to evaluate SEO quality and provide actionable optimization suggestions.
 
-### Why MD Audit?
-
-- **Native Markdown Support**: Analyze `.md` files directly without conversion
-- **Dual-Engine Analysis**: Fast rule checking + intelligent AI insights
-- **Beautiful Web UI**: Modern Vue.js interface with Aurora animations
-- **Actionable Reports**: Specific suggestions with code examples, not generic advice
-- **Graceful Degradation**: Falls back to rule-only analysis when AI is unavailable
-
----
-
-## Features
-
-### Core Analysis
-
-| Dimension | Weight | Checks |
-|-----------|--------|--------|
-| **Metadata** | 30% | Title length (30-60 chars), Description length (120-160 chars) |
-| **Structure** | 25% | Unique H1 tag, Image alt coverage (≥80%), Internal/external links |
-| **Keywords** | 20% | Keyword density (1%-2.5%), Keyword placement (title/desc/first paragraph) |
-| **AI Semantic** | 25% | Content depth, Readability, Topic relevance |
-
-### Web Interface Features
-
-- **Drag & Drop Upload**: Simply drag your Markdown files
-- **Real-time Analysis**: Watch progress with animated indicators
-- **Score Celebration**: Confetti effects for excellent scores (85+)
-- **Aurora Background**: Beautiful animated gradient background
-- **Responsive Design**: Works on desktop and mobile
-
-### CLI Features
-
-- Single file and batch directory analysis
-- Custom keyword specification
-- Configurable rules via JSON
-- Multiple output formats
+**Key Benefits:**
+- **Native Markdown Support** - Analyze `.md` files directly
+- **Dual-Engine Analysis** - Fast rules + intelligent AI insights
+- **Beautiful Web UI** - Vue.js interface with Aurora animations
+- **Actionable Reports** - Specific suggestions with code examples
+- **Graceful Degradation** - Falls back to rule-only when AI unavailable
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-
-- Python 3.8+
-- Node.js 18+ (for web interface)
-- OpenAI API key (optional, for AI analysis)
-
-### Installation
+### One-Command Setup
 
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/JasonRobertDestiny/MD_Audit.git
 cd MD_Audit
+make install
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate   # Windows
-
-# Install Python dependencies
-pip install -r requirements.txt
-pip install -e .
-
-# Install frontend dependencies
-cd frontend
-npm install
-cd ..
-```
-
-### Configuration
-
-```bash
-# Set your OpenAI API key (optional, for AI analysis)
+# Set API key (optional, for AI analysis)
 export MD_AUDIT_LLM_API_KEY=your_openai_api_key
 
-# Or create a .env file
-echo "MD_AUDIT_LLM_API_KEY=your_openai_api_key" > .env
+# Start the application
+make serve
+```
+
+Access at **http://localhost:8000**
+
+### Development Mode
+
+```bash
+# Frontend hot-reload + backend auto-reload
+make dev
+```
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+
+---
+
+## Docker
+
+### Quick Run
+
+```bash
+docker build -t md-audit .
+docker run -p 8000:8000 -e MD_AUDIT_LLM_API_KEY=your_key md-audit
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  md-audit:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MD_AUDIT_LLM_API_KEY=${MD_AUDIT_LLM_API_KEY}
+    volumes:
+      - ./data:/app/data
+```
+
+```bash
+docker-compose up -d
 ```
 
 ---
 
-## Web Interface
+## Features
 
-### Start the Application
+### Scoring Dimensions
 
-```bash
-# Terminal 1: Start the backend API
-source venv/bin/activate
-python -m md_audit.main serve --reload
+| Dimension | Weight | Checks |
+|-----------|--------|--------|
+| **Metadata** | 30% | Title (30-60 chars), Description (120-160 chars) |
+| **Structure** | 25% | Unique H1, Image alt coverage (>=80%), Links |
+| **Keywords** | 20% | Density (1%-2.5%), Placement in title/desc/first paragraph |
+| **AI Semantic** | 25% | Content depth, Readability, Topic relevance |
 
-# Terminal 2: Start the frontend
-cd frontend
-npm run dev
-```
+### Score Grades
 
-Access the web interface at **http://localhost:5173**
-
-### Web UI Features
-
-- **Homepage**: Upload zone with drag & drop support
-- **Analysis Progress**: Animated step-by-step progress indicator
-- **Score Display**: Circular score ring with gradient colors
-- **Diagnostic Cards**: Categorized issues (Critical, Warning, Success)
-- **Keyword Tags**: Extracted keywords display
+| Score | Grade | Action |
+|-------|-------|--------|
+| 90-100 | Excellent | Publish ready |
+| 70-89 | Good | Minor tweaks |
+| 50-69 | Needs Work | Review suggestions |
+| 0-49 | Poor | Major revision needed |
 
 ---
 
 ## CLI Usage
 
-### Basic Analysis
-
 ```bash
-# Analyze a single file (auto-extract keywords)
-md-audit analyze docs/article.md
+# Basic analysis
+python -m md_audit.main analyze article.md
 
-# Or use Python module
-python -m md_audit.main analyze docs/article.md
-```
+# With keywords
+python -m md_audit.main analyze article.md -k "Python" "SEO"
 
-### Advanced Options
+# Save report
+python -m md_audit.main analyze article.md -o report.md
 
-```bash
-# Specify keywords manually
-md-audit analyze docs/article.md -k "Python" "SEO" "optimization"
+# Disable AI (rules only, faster)
+python -m md_audit.main analyze article.md --no-ai
 
-# Save report to file
-md-audit analyze docs/article.md -o report.md
-
-# Use custom configuration
-md-audit analyze docs/article.md --config custom_config.json
-
-# Disable AI analysis (rules only)
-md-audit analyze docs/article.md --no-ai
-
-# Batch analyze a directory
-md-audit analyze docs/ -o reports/ --workers 8
+# Batch directory analysis
+python -m md_audit.main analyze docs/ -o reports/ --workers 8
 ```
 
 ---
 
 ## API Reference
 
-### REST Endpoints
+### Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/analyze` | Analyze uploaded Markdown file |
-| `GET` | `/api/health` | Health check endpoint |
-| `GET` | `/docs` | Interactive API documentation |
+| `POST` | `/api/analyze` | Analyze Markdown file |
+| `POST` | `/api/analyze/batch` | Batch analysis |
+| `GET` | `/api/history` | Analysis history |
+| `GET` | `/api/health` | Health check |
+| `GET` | `/docs` | Swagger UI |
 
-### Example Request
+### Example
 
 ```bash
 curl -X POST "http://localhost:8000/api/analyze" \
@@ -186,8 +160,7 @@ curl -X POST "http://localhost:8000/api/analyze" \
   -F "keywords=SEO,Markdown"
 ```
 
-### Response Schema
-
+Response:
 ```json
 {
   "total_score": 85.5,
@@ -195,15 +168,8 @@ curl -X POST "http://localhost:8000/api/analyze" \
   "structure_score": 22.5,
   "keyword_score": 18.0,
   "ai_score": 17.0,
-  "diagnostics": [
-    {
-      "rule_id": "META_01",
-      "severity": "success",
-      "message": "Title length is optimal (45 characters)",
-      "current_value": 45,
-      "expected_range": "30-60"
-    }
-  ],
+  "diagnostics": [...],
+  "suggestions": [...],
   "extracted_keywords": ["python", "seo", "markdown"]
 }
 ```
@@ -212,43 +178,28 @@ curl -X POST "http://localhost:8000/api/analyze" \
 
 ## Configuration
 
-### Default Configuration
-
-Located at `config/default_config.json`:
-
-```json
-{
-  "title_rules": {
-    "min_length": 30,
-    "max_length": 60
-  },
-  "description_rules": {
-    "min_length": 120,
-    "max_length": 160
-  },
-  "keyword_rules": {
-    "min_density": 0.01,
-    "max_density": 0.025,
-    "max_auto_keywords": 5
-  },
-  "content_rules": {
-    "min_length": 300,
-    "min_h1_count": 1,
-    "max_h1_count": 1,
-    "min_image_alt_ratio": 0.8
-  },
-  "llm_model": "gpt-4o",
-  "enable_ai_analysis": true
-}
-```
-
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MD_AUDIT_LLM_API_KEY` | OpenAI API key | - |
-| `MD_AUDIT_LLM_MODEL` | LLM model to use | `gpt-4o` |
-| `SEO_RULES_CONFIG` | Custom config file path | `config/default_config.json` |
+| `MD_AUDIT_LLM_MODEL` | Model name | `gpt-4o` |
+| `MD_AUDIT_LLM_BASE_URL` | API base URL | OpenAI default |
+| `SEO_RULES_CONFIG` | Config file path | `config/default_config.json` |
+
+### Config File
+
+`config/default_config.json`:
+
+```json
+{
+  "title_rules": { "min_length": 30, "max_length": 60 },
+  "description_rules": { "min_length": 120, "max_length": 160 },
+  "keyword_rules": { "min_density": 0.01, "max_density": 0.025 },
+  "content_rules": { "min_length": 300, "min_image_alt_ratio": 0.8 },
+  "enable_ai_analysis": true
+}
+```
 
 ---
 
@@ -256,128 +207,56 @@ Located at `config/default_config.json`:
 
 ```
 MD_Audit/
-├── md_audit/                 # Core Python package
-│   ├── main.py              # CLI entry point
-│   ├── analyzer.py          # Main analyzer orchestrator
-│   ├── config.py            # Configuration management
-│   ├── reporter.py          # Report generation
+├── md_audit/              # Core Python package
+│   ├── main.py            # CLI entry
+│   ├── analyzer.py        # Analysis orchestrator
 │   ├── engines/
-│   │   ├── rules_engine.py  # Rule-based analysis
-│   │   └── ai_engine.py     # AI semantic analysis
+│   │   ├── rules_engine.py    # Rule-based checks
+│   │   └── ai_engine.py       # AI semantic analysis
 │   ├── parsers/
-│   │   └── markdown_parser.py  # Markdown/Frontmatter parsing
+│   │   └── markdown_parser.py # Frontmatter + MD parsing
 │   └── models/
-│       └── data_models.py   # Pydantic data models
-├── frontend/                 # Vue.js web interface
-│   ├── src/
-│   │   ├── components/      # Vue components
-│   │   ├── views/           # Page views
-│   │   └── assets/styles/   # Tailwind CSS
-│   └── tailwind.config.js   # Tailwind configuration
-├── web/                      # FastAPI backend
-│   └── main.py              # API endpoints
-├── config/                   # Configuration files
-├── tests/                    # Test suite
-└── docs/                     # Documentation
+│       └── data_models.py     # Pydantic models
+├── frontend/              # Vue.js web UI
+├── web/                   # FastAPI backend
+├── config/                # Configuration
+└── tests/                 # Test suite
 ```
-
----
-
-## Scoring System
-
-### Score Grades
-
-| Score Range | Grade | Badge |
-|-------------|-------|-------|
-| 90-100 | Excellent | Green |
-| 70-89 | Good | Blue |
-| 50-69 | Needs Work | Amber |
-| 0-49 | Poor | Red |
-
-### Severity Levels
-
-- **Critical**: Must fix immediately (e.g., missing title)
-- **High**: Significant SEO impact (e.g., title too short)
-- **Medium**: Optimization opportunity (e.g., description slightly long)
-- **Low**: Minor suggestion (e.g., could add more internal links)
 
 ---
 
 ## Development
 
-### Running Tests
-
 ```bash
-# Run all tests
-pytest tests/ -v
+# Run tests
+make test
 
-# Run with coverage
-pytest tests/ --cov=md_audit --cov-report=html
-```
-
-### Code Quality
-
-```bash
 # Format code
 black md_audit/
 
-# Lint code
+# Lint
 ruff check md_audit/
 
-# Auto-fix lint issues
-ruff check --fix md_audit/
-```
-
-### Building Frontend
-
-```bash
-cd frontend
-npm run build
+# Build frontend only
+make build
 ```
 
 ---
 
 ## Tech Stack
 
-### Backend
-- **Python 3.8+**: Core language
-- **FastAPI**: REST API framework
-- **Pydantic**: Data validation
-- **OpenAI**: AI semantic analysis
-- **BeautifulSoup4**: HTML parsing
-- **python-frontmatter**: YAML frontmatter parsing
+**Backend:** Python 3.8+, FastAPI, Pydantic, OpenAI, BeautifulSoup4
 
-### Frontend
-- **Vue.js 3.4**: UI framework
-- **Tailwind CSS 3.4**: Styling
-- **Vite 7**: Build tool
-- **Axios**: HTTP client
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**Frontend:** Vue.js 3.4, Tailwind CSS, Vite, Axios
 
 ---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## Acknowledgments
-
-- Inspired by [SEO-AutoPilot](https://github.com/example/SEO-AutoPilot) for configuration and keyword extraction patterns
-- [ReactBits](https://reactbits.dev) for UI animation inspiration
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
 <p align="center">
-  Made with dedication by <a href="https://github.com/JasonRobertDestiny">JasonRobertDestiny</a>
+  <a href="https://github.com/JasonRobertDestiny">@JasonRobertDestiny</a>
 </p>
